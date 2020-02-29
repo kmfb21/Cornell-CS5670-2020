@@ -21,7 +21,18 @@ def cross_correlation_2d(img, kernel):
         height and the number of color channels)
     '''
     # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
+    res = np.zeros(img.shape)
+    height, width = img.shape[0], img.shape[1]
+    heightK, widthK = kernel.shape
+    for i in range(height):
+        for j in range(width):
+            for u in range(heightK):
+                for v in range(widthK):
+                    targetI = i - heightK / 2 + u
+                    targetJ = j - widthK / 2 + v
+                    if targetI in range(height) and targetJ in range(width):
+                        res[i][j] += img[targetI][targetJ] * kernel[u][v]
+    return res
     # TODO-BLOCK-END
 
 def convolve_2d(img, kernel):
@@ -38,7 +49,18 @@ def convolve_2d(img, kernel):
         height and the number of color channels)
     '''
     # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
+    res = np.zeros(img.shape)
+    height, width = img.shape[0], img.shape[1]
+    heightK, widthK = kernel.shape
+    for i in range(height):
+        for j in range(width):
+            for u in range(heightK):
+                for v in range(widthK):
+                    targetI = i - heightK / 2 + u
+                    targetJ = j - widthK / 2 + v
+                    if targetI in range(height) and targetJ in range(width):
+                        res[i][j] += img[targetI][targetJ] * kernel[heightK - 1 - u][widthK - 1 - v]
+    return res
     # TODO-BLOCK-END
 
 def gaussian_blur_kernel_2d(sigma, height, width):
@@ -57,7 +79,13 @@ def gaussian_blur_kernel_2d(sigma, height, width):
         with an image results in a Gaussian-blurred image.
     '''
     # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
+    heightK, widthK = height / 2, width / 2
+    res = np.zeros([height, width])
+    for i in range(height):
+        for j in range(width):
+            x, y = i - heightK, j - widthK
+            res[i][j] = np.exp(float(x*x+y*y) / (-2 * sigma ** 2))
+    return res / np.sum(res)
     # TODO-BLOCK-END
 
 def low_pass(img, sigma, size):
@@ -70,7 +98,7 @@ def low_pass(img, sigma, size):
         height and the number of color channels)
     '''
     # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
+    return convolve_2d(img, gaussian_blur_kernel_2d(sigma, size, size))
     # TODO-BLOCK-END
 
 def high_pass(img, sigma, size):
@@ -83,7 +111,7 @@ def high_pass(img, sigma, size):
         height and the number of color channels)
     '''
     # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
+    return img - low_pass(img, sigma, size)
     # TODO-BLOCK-END
 
 def create_hybrid_image(img1, img2, sigma1, size1, high_low1, sigma2, size2,

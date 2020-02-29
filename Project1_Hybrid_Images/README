@@ -1,0 +1,28 @@
+Must contain high pass and low pass filter parameters(kernel size and kernel sigma) and Mix-in ratio. It should also contain which image's higher/lower frequencies are used.
+{
+  "right_size": 10, 
+  "left_sigma": 4.0, 
+  "scale_factor": 2.0, 
+  "right_sigma": 2.5, 
+  "right_mode": "high", 
+  "view_grayscale": 0, 
+  "left_mode": "low", 
+  "left_size": 20, 
+  "mixin_ratio": 0.5, 
+  "save_grayscale": 0
+}
+
+
+low pass:
+left.png
+kernel size: 20 * 20
+kernel sigma: 4.0
+
+high pass:
+right.png
+kernel size: 10 * 10
+kernel sigma: 2.5
+
+Mix-in ratio: 0.5
+
+
