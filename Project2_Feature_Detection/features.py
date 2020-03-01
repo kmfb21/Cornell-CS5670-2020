@@ -450,8 +450,8 @@ class SSDFeatureMatcher(FeatureMatcher):
             match_index = np.argmin(distance)
             match = cv2.DMatch()
             match.queryIdx = i
-            match.trainIdx = match_index
-            match.distance = distance[match_index]
+            match.trainIdx = match_index.item()
+            match.distance = distance[match_index.item()]
             matches.append(match)
         # TODO-BLOCK-END
 
@@ -501,8 +501,8 @@ class RatioFeatureMatcher(FeatureMatcher):
             sorted_index = np.argsort(distance)
             match = cv2.DMatch()
             match.queryIdx = i
-            match.trainIdx = sorted_index[0]
-            match.distance = distance[sorted_index[0]] / distance[sorted_index[1]]
+            match.trainIdx = sorted_index[0].item()
+            match.distance = distance[sorted_index[0].item()] / distance[sorted_index[1].item()].item()
             matches.append(match)
         # TODO-BLOCK-END
 
