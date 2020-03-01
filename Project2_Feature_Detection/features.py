@@ -102,10 +102,10 @@ class HarrisKeypointDetector(KeypointDetector):
 
         # get I_x and I_y
         I_y, I_x = ndimage.sobel(srcImage, axis=0), ndimage.sobel(srcImage, axis=1)
-        w = ndimage.gaussian_filter(srcImage, sigma=0.5, truncate=3.0)
-        H = np.zeros([0, 0])
-        H[0][0], H[0][1] = w * I_x ** 2, w * I_x * I_y
-        H[1][0], H[1][1] = w * I_x * I_y, w * I_y ** 2
+        H = [[None, None], [None, None]]
+        H[0][0], H[0][1] = I_x ** 2, I_x * I_y
+        H[1][0], H[1][1] = I_x * I_y, I_y ** 2
+        H = [[ndimage.gaussian_filter(col, sigma=0.5) for col in row] for row in H]
         detH = H[0][0] * H[1][1] - H[0][1] * H[1][0]
         traceH = H[0][0] + H[1][1]
         harrisImage = detH - 0.1 * traceH ** 2
@@ -247,7 +247,14 @@ class SimpleFeatureDescriptor(FeatureDescriptor):
             # sampled centered on the feature point. Store the descriptor
             # as a row-major vector. Treat pixels outside the image as zero.
             # TODO-BLOCK-BEGIN
-            raise Exception("TODO 4: in features.py not implemented")
+            count = 0
+            for u in range(5):
+                for v in range(5):
+                    row_update = y - 2 + u
+                    col_update = x - 2 + v
+                    if inbounds(grayImage.shape, (row_update, col_update)):
+                        desc[i, count] = grayImage[row_update, col_update]
+                    count += 1
             # TODO-BLOCK-END
 
         return desc
@@ -283,7 +290,14 @@ class MOPSFeatureDescriptor(FeatureDescriptor):
             transMx = np.zeros((2, 3))
 
             # TODO-BLOCK-BEGIN
-            raise Exception("TODO 5: in features.py not implemented")
+            x_pt, y_pt = f.pt
+
+            T1 = transformations.get_trans_mx(np.array((-x_pt, -y_pt, 0)))
+            R = transformations.get_rot_mx(0, 0, np.radians(-f.angle))
+            S = transformations.get_scale_mx(.2, .2, 0)
+            T2 = transformations.get_trans_mx(np.array([windowSize / 2, windowSize / 2, 0]))
+            dot_prod = np.dot(T2, np.dot(S, np.dot(R, T1)))
+            transMx = dot_prod[:2, (0, 1, 3)]
             # TODO-BLOCK-END
 
             # Call the warp affine function to do the mapping
@@ -296,7 +310,14 @@ class MOPSFeatureDescriptor(FeatureDescriptor):
             # define as less than 1e-10) then set the descriptor
             # vector to zero. Lastly, write the vector to desc.
             # TODO-BLOCK-BEGIN
-            raise Exception("TODO 6: in features.py not implemented")
+            output = destImage[:8, :8]
+            output -= np.mean(output)
+            if np.std(output)**2 <= 10 ** (-10):
+                desc[i, :] = np.zeros((windowSize * windowSize,))
+            else:
+                temp = np.std(output)
+                output /= temp
+                desc[i, :] = output.reshape(windowSize * windowSize)
             # TODO-BLOCK-END
 
         return desc
