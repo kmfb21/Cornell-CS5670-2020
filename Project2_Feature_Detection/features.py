@@ -99,7 +99,17 @@ class HarrisKeypointDetector(KeypointDetector):
         # for direction on how to do this. Also compute an orientation
         # for each pixel and store it in 'orientationImage.'
         # TODO-BLOCK-BEGIN
-        raise Exception("TODO 1: in features.py not implemented")
+
+        # get I_x and I_y
+        I_y, I_x = ndimage.sobel(srcImage, axis=0), ndimage.sobel(srcImage, axis=1)
+        w = ndimage.gaussian_filter(srcImage, sigma=0.5, truncate=3.0)
+        H = np.zeros([0, 0])
+        H[0][0], H[0][1] = w * I_x ** 2, w * I_x * I_y
+        H[1][0], H[1][1] = w * I_x * I_y, w * I_y ** 2
+        detH = H[0][0] * H[1][1] - H[0][1] * H[1][0]
+        traceH = H[0][0] + H[1][1]
+        harrisImage = detH - 0.1 * traceH ** 2
+        orientationImage = np.degrees(np.arctan2(I_y, I_x))
         # TODO-BLOCK-END
 
         return harrisImage, orientationImage
@@ -119,7 +129,10 @@ class HarrisKeypointDetector(KeypointDetector):
 
         # TODO 2: Compute the local maxima image
         # TODO-BLOCK-BEGIN
-        raise Exception("TODO 2: in features.py not implemented")
+        maximum = ndimage.maximum_filter(harrisImage, size=(7, 7))
+        for y in range(harrisImage.shape[0]):
+            for x in range(harrisImage.shape[1]):
+                destImage[y][x] = maximum[y][x] == harrisImage[y][x]
         # TODO-BLOCK-END
 
         return destImage
@@ -167,7 +180,10 @@ class HarrisKeypointDetector(KeypointDetector):
                 # f.angle to the orientation in degrees and f.response to
                 # the Harris score
                 # TODO-BLOCK-BEGIN
-                raise Exception("TODO 3: in features.py not implemented")
+                f.pt = (x, y)
+                f.size = 10
+                f.angle = orientationImage[y, x]
+                f.response = harrisImage[y, x]
                 # TODO-BLOCK-END
 
                 features.append(f)
@@ -406,7 +422,16 @@ class SSDFeatureMatcher(FeatureMatcher):
         # Note: multiple features from the first image may match the same
         # feature in the second image.
         # TODO-BLOCK-BEGIN
-        raise Exception("TODO 7: in features.py not implemented")
+        for i, desc in enumerate(desc1):
+            diff_square = (desc2 - desc) ** 2
+            square_sum = np.sum(diff_square, axis=1)
+            distance = np.sqrt(square_sum)
+            match_index = np.argmin(distance)
+            match = cv2.DMatch()
+            match.queryIdx = i
+            match.trainIdx = match_index
+            match.distance = distance[match_index]
+            matches.append(match)
         # TODO-BLOCK-END
 
         return matches
@@ -448,7 +473,16 @@ class RatioFeatureMatcher(FeatureMatcher):
         # feature in the second image.
         # You don't need to threshold matches in this function
         # TODO-BLOCK-BEGIN
-        raise Exception("TODO 8: in features.py not implemented")
+        for i, desc in enumerate(desc1):
+            diff_square = (desc2 - desc) ** 2
+            square_sum = np.sum(diff_square, axis=1)
+            distance = np.sqrt(square_sum)
+            sorted_index = np.argsort(distance)
+            match = cv2.DMatch()
+            match.queryIdx = i
+            match.trainIdx = sorted_index[0]
+            match.distance = distance[sorted_index[0]] / distance[sorted_index[1]]
+            matches.append(match)
         # TODO-BLOCK-END
 
         return matches
