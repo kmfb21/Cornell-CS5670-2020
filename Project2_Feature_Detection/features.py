@@ -446,12 +446,11 @@ class SSDFeatureMatcher(FeatureMatcher):
         for i, desc in enumerate(desc1):
             diff_square = (desc2 - desc) ** 2
             square_sum = np.sum(diff_square, axis=1)
-            distance = np.sqrt(square_sum)
-            match_index = np.argmin(distance)
+            match_index = np.argmin(square_sum)
             match = cv2.DMatch()
             match.queryIdx = i
             match.trainIdx = match_index.item()
-            match.distance = distance[match_index.item()]
+            match.distance = square_sum[match_index.item()]
             matches.append(match)
         # TODO-BLOCK-END
 
@@ -502,7 +501,7 @@ class RatioFeatureMatcher(FeatureMatcher):
             match = cv2.DMatch()
             match.queryIdx = i
             match.trainIdx = sorted_index[0].item()
-            match.distance = distance[sorted_index[0].item()] / distance[sorted_index[1].item()].item()
+            match.distance = distance[sorted_index[0].item()] / distance[sorted_index[1].item()]
             matches.append(match)
         # TODO-BLOCK-END
 
