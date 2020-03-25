@@ -42,7 +42,27 @@ def computeHomography(f1, f2, matches, A_out=None):
         #Fill in the matrix A in this loop.
         #Access elements using square brackets. e.g. A[0,0]
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+
+        A[i*2,0] = a_x #xn
+        A[i*2,1] = a_y #yn
+        A[i*2,2] = 1
+#         A[i*2,3] = 0
+#         A[i*2,4] = 0
+#         A[i*2,5] = 0
+        A[i*2,6] = - b_x * a_x #-xn'*xn
+        A[i*2,7] = - b_x * a_y #-xn'*yn
+        A[i*2,8] = - b_x #-xn'
+#         A[i*2+1,0] = 0
+#         A[i*2+1,1] = 0
+#         A[i*2+1,2] = 0
+        A[i*2+1,3] = a_x #xn
+        A[i*2+1,4] = a_y #yn
+        A[i*2+1,5] = 1
+        A[i*2+1,6] = - b_y * a_x #-yn'xn
+        A[i*2+1,7] = - b_y * a_y #-yn'yn
+        A[i*2+1,8] = - b_y #-yn'
+
+        #raise Exception("TODO in alignment.py not implemented")
         #TODO-BLOCK-END
         #END TODO
 
@@ -62,7 +82,13 @@ def computeHomography(f1, f2, matches, A_out=None):
     #BEGIN TODO 3
     #Fill the homography H with the appropriate elements of the SVD
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in alignment.py not implemented")
+
+    # from the slides: "Solution: H = eigenvector of A^TA with smallest eigenvalue"
+    # also s is a 1-D array of singular values sorted in descending order
+    # thus
+    H = Vt[-1].reshape(3,3)
+
+    #raise Exception("TODO in alignment.py not implemented")
     #TODO-BLOCK-END
     #END TODO
 
@@ -98,12 +124,34 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
     #full homographies (m == eHomography).  However, you should
     #only have one outer loop to perform the RANSAC code, as
     #the use of RANSAC is almost identical for both cases.
-
     #Your homography handling code should call compute_homography.
     #This function should also call get_inliers and, at the end,
     #least_squares_fit.
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in alignment.py not implemented")
+
+    # note from P3 instruction:
+    # it randomly pulls out a minimal set of feature matches (one match for the case of translations, four for homographies)
+
+    max_inliers = []
+
+    for n in range(nRANSAC):
+        inter_image = np.eye(3) # Identity
+
+        if m == eHomography:
+            min_match = random.sample(matches, 4)
+            inter_image = computeHomography(f1,f2,min_match)
+
+        elif m == eTranslation:
+            min_match = random.sample(matches, 1)
+            inter_image[0,2] = f2[min_match.trainIdx].pt[0] - f1[min_match.queryIdx].pt[0] #tx
+            inter_image[1,2] = f2[min_match.trainIdx].pt[1] - f1[min_match.queryIdx].pt[1] #ty
+
+        inliers_new = getInliers(f1,f2,matches,inter_image,RANSACthresh)
+        if len(inliers_new) > len(max_inliers):
+            max_inliers = inliers_new
+
+    M = leastSquaresFit(f1,f2,matches,m,max_inliers)
+    #raise Exception("TODO in alignment.py not implemented")
     #TODO-BLOCK-END
     #END TODO
     return M
@@ -138,7 +186,21 @@ def getInliers(f1, f2, matches, M, RANSACthresh):
         #by M, is within RANSACthresh of its match in f2.
         #If so, append i to inliers
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+        id1 = matches[i].queryIdx # index of the feature in the first image
+        id2 = matches[i].trainIdx # index of the feature in the second image
+
+        pic1_line = np.array([f1[id1].pt[0],f1[id1].pt[1],1]).T
+        pic2_line = np.array([f2[id2].pt[0],f2[id2].pt[1],1]).T
+
+        trans = np.dot(M, pic1_line)
+        z = trans[2]
+        norm = np.array([trans[0]/z, trans[1]/z, 1])
+
+        if np.linalg.norm(pic2_line - norm) <= RANSACthresh:
+            inlier_indices.append(i)
+
+
+        #raise Exception("TODO in alignment.py not implemented")
         #TODO-BLOCK-END
         #END TODO
 
@@ -183,7 +245,11 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
             #Use this loop to compute the average translation vector
             #over all inliers.
             #TODO-BLOCK-BEGIN
-            raise Exception("TODO in alignment.py not implemented")
+            id1 = matches[i].queryIdx # index of the feature in the first image
+            id2 = matches[i].trainIdx # index of the feature in the second image
+            u += (f2[id2].pt[0] - f1[id1].pt[0])
+            v += (f2[id2].pt[1] - f1[id1].pt[1])
+            #raise Exception("TODO in alignment.py not implemented")
             #TODO-BLOCK-END
             #END TODO
 
@@ -198,7 +264,11 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
         #Compute a homography M using all inliers.
         #This should call computeHomography.
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+        matches_list = []
+        for i in inlier_indices:
+            matches_list.append(matches[i])
+        M = computeHomography(f1,f2,matches_list)
+        #raise Exception("TODO in alignment.py not implemented")
         #TODO-BLOCK-END
         #END TODO
 

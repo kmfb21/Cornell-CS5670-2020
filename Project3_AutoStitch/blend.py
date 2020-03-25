@@ -29,7 +29,30 @@ def imageBoundingBox(img, M):
     """
     #TODO 8
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+    corners_list = []
+
+    height = img.shape[0]
+    width = img.shape[1]
+
+    corners_list.append(np.dot(M, [0,0,1]))
+    corners_list.append(np.dot(M, [1,width-1,1]))
+    corners_list.append(np.dot(M, [height-1,0,1]))
+    corners_list.append(np.dot(M, [height-1,width-1,1]))
+
+    norm_x = []
+    norm_y = []
+    for i in corners_list:
+        z = i[2]
+        norm_corner = [i[0]/z,i[1]/z,1]
+        norm_x.append(norm_corner[0])
+        norm_y.append(norm_corner[1])
+
+    minX = min(norm_x)
+    maxX = max(norm_x)
+    minY = min(norm_y)
+    maxY = max(norm_y)
+
+    #raise Exception("TODO in blend.py not implemented")
     #TODO-BLOCK-END
     return int(minX), int(minY), int(maxX), int(maxY)
 
@@ -107,7 +130,16 @@ def getAccSize(ipv):
         # BEGIN TODO 9
         # add some code here to update minX, ..., maxY
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in blend.py not implemented")
+        Bbox_xmin, Bbox_ymin, Bbox_xmax, Bbox_ymax = imageBoundingBox(img, M)
+        if Bbox_xmin < minX:
+            minX = Bbox_xmin
+        if Bbox_ymin < minY:
+            minY = Bbox_ymin
+        if Bbox_xmax > maxX:
+            maxX = Bbox_xmax
+        if Bbox_ymax > maxY:
+            maxY = Bbox_ymax
+        #raise Exception("TODO in blend.py not implemented")
         #TODO-BLOCK-END
         # END TODO
 
