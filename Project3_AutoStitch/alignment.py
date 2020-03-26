@@ -141,8 +141,8 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
             min_match = random.sample(matches, 4)
             inter_image = computeHomography(f1,f2,min_match)
 
-        elif m == eTranslation:
-            min_match = random.sample(matches, 1)
+        elif m == eTranslate:
+            min_match = np.random.choice(matches, 1)[0]
             inter_image[0,2] = f2[min_match.trainIdx].pt[0] - f1[min_match.queryIdx].pt[0] #tx
             inter_image[1,2] = f2[min_match.trainIdx].pt[1] - f1[min_match.queryIdx].pt[1] #ty
 
