@@ -72,7 +72,27 @@ def accumulateBlend(img, acc, M, blendWidth):
     # BEGIN TODO 10
     # Fill in this routine
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+    height, width, _ = img.shape
+    min_x, min_y, max_x, max_y = imageBoundingBox(img, M)
+    for i in range(min_x, max_x):
+        for j in range(min_y, max_y):
+            p = np.array([i, j, 1.0])
+            p = np.dot(np.linalg.inv(M), p)
+            x_new = int(p[0] / p[2])
+            y_new = int(p[1] / p[2])
+            if x_new in range(width) and y_new in range(height):
+                if img[y_new, x_new, 0] == 0 and img[y_new, x_new, 1] == 0 and img[y_new, x_new, 2] == 0:
+                    continue
+                weight = 1.0
+                if min_x < x_new < min_x + blendWidth:
+                    weight = float(x_new - min_x) / blendWidth
+                if max_x > x_new > max_x - blendWidth:
+                    weight = float(max_x - x_new) / blendWidth
+
+                for k in range(3):
+                    acc[j, i, k] += img[y_new, x_new, k] * weight
+                acc[j, i, 3] += weight
+
     #TODO-BLOCK-END
     # END TODO
 
@@ -88,7 +108,15 @@ def normalizeBlend(acc):
     # BEGIN TODO 11
     # fill in this routine..
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+    height, width, _ = acc.shape
+    img = np.zeros((height, width, 3))
+    for i in range(height):
+        for j in range(width):
+            if acc[i, j, 3] > 0:
+                img[i, j, 0] = int(acc[i, j, 0] / acc[i, j, 3])
+                img[i, j, 1] = int(acc[i, j, 1] / acc[i, j, 3])
+                img[i, j, 2] = int(acc[i, j, 2] / acc[i, j, 3])
+    img = np.asarray(img, dtype=np.uint8)
     #TODO-BLOCK-END
     # END TODO
     return img
@@ -231,7 +259,8 @@ def blendImages(ipv, blendWidth, is360=False, A_out=None):
     # Note: warpPerspective does forward mapping which means A is an affine
     # transform that maps accumulator coordinates to final panorama coordinates
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+    if is360:
+        A = computeDrift(x_init, y_init, x_final, y_final, width)
     #TODO-BLOCK-END
     # END TODO
 
