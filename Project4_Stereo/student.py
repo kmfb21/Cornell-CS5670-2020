@@ -29,7 +29,27 @@ def compute_photometric_stereo_impl(lights, images):
         normals -- float32 height x width x 3 image with dimensions matching
                    the input images.
     """
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    n = len(images)
+    row, col, cha = images[0].shape
+
+    i = np.array(images).reshape(n, -1)
+
+    lt = lights.T
+    l_inv = np.linalg.inv(np.dot(lt, lights))
+    g_matrix = np.dot(np.dot(l_inv, lt), i)
+    # print(g_matrix)
+
+    # albedo
+    rgb_g = np.reshape(g_matrix.T, (row, col, cha, 3))
+    albedo = np.linalg.norm(rgb_g, axis=3)
+
+    # normals
+    grey_g = np.mean(rgb_g, axis=2)
+    normals = grey_g / np.maximum(1e-7, np.linalg.norm(grey_g, axis=2)[:, :, np.newaxis])
+    normals[np.linalg.norm(grey_g, axis=2) < 1e-7] = 0
+
+    return albedo, normals
 
 
 def project_impl(K, Rt, points):
@@ -42,8 +62,13 @@ def project_impl(K, Rt, points):
     Output:
         projections -- height x width x 2 array of 2D projections
     """
-    raise NotImplementedError()
-
+    # raise NotImplementedError()
+    proj_matrix = np.dot(K, Rt)
+    height, weight, dim = np.shape(points)
+    homo = np.concatenate((points, np.ones((height, weight, 1))), axis=2)
+    proj = np.tensordot(homo, proj_matrix.T, axes=1)
+    norm_proj = proj / (proj[:, :, 2])[:, :, np.newaxis]
+    return norm_proj[:, :, :2]
 
 def preprocess_ncc_impl(image, ncc_size):
     """
@@ -94,7 +119,24 @@ def preprocess_ncc_impl(image, ncc_size):
     Output:
         normalized -- heigth x width x (channels * ncc_size**2) array
     """
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    height, width, channels = image.shape
+    ans = np.zeros((height, width, channels * ncc_size ** 2))
+    mid = ncc_size // 2
+
+    for row in range(mid, height - mid):
+        for col in range(mid, width - mid):
+            patches = image[row - mid: row + mid + 1, col - mid: col + mid + 1, :]
+            patches = patches - np.mean(patches, axis=(0, 1))
+            patches = [patches[:, :, c].flatten().T for c in range(channels)]
+            flattened = np.array(patches).flatten(order='C')
+            normalized = np.linalg.norm(flattened)
+            if normalized < 1e-6:
+                flattened.fill(0)
+            else:
+                flattened = flattened / normalized
+            ans[row, col] = flattened
+    return ans
 
 
 def compute_ncc_impl(image1, image2):
@@ -109,4 +151,5 @@ def compute_ncc_impl(image1, image2):
         ncc -- height x width normalized cross correlation between image1 and
                image2.
     """
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    return np.sum(np.multiply(image1, image2), axis=2)
