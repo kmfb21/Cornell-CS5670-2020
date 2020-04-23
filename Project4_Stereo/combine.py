@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import math
 
-from scipy.misc import imsave, imread
+from imageio import imread
 from scipy.sparse.linalg import lsqr
 import cv2
 import time
